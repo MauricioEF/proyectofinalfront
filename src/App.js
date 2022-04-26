@@ -1,24 +1,52 @@
-import logo from './logo.svg';
 import './App.css';
-
+import React, { Suspense, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { sessionService } from './services';
+import { isLogin } from './utils';
+import PrivateRoute from './components/PrivateRoute';
+import PublicRoute from './components/PublicRoute';
+const Home = React.lazy(() => import('./Pages/Home'));
+const Register = React.lazy(() => import('./Pages/Register'));
+const Login = React.lazy(() => import('./Pages/Login'))
+const ProductDetails = React.lazy(() => import('./Pages/ProductDescription'));
+const NewProduct = React.lazy(()=>import('./Pages/NewProduct'));
+const Chat = React.lazy(()=>import('./Pages/Chat'))
 function App() {
+  const callbackSuccessCurrent = (response) => {
+    if (response.data.error) {
+      localStorage.removeItem('sessionToken');
+      localStorage.removeItem('user');
+    }
+    else{
+      localStorage.setItem('user',JSON.stringify(response.data.payload));
+    }
+  }
+  const callbackErrorCurrent = (response) => {
+    localStorage.removeItem('sessionToken');
+    localStorage.removeItem('user');
+    window.location.href = '/';
+  }
+  if (isLogin()) {
+    sessionService.current({ callbackSuccess: callbackSuccessCurrent, callbackError: callbackErrorCurrent });
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Suspense fallback="Loading...">
+      <Router >
+        <Routes>
+          <Route element={<PrivateRoute isLogged={isLogin()} />}>
+            <Route path="/" element={<Home />} />
+            <Route path='/products/:pid' element={<ProductDetails/>} />
+            <Route path='/newproduct' element={<NewProduct/>}/>
+            <Route path='/chat' element={<Chat/>}/>
+          </Route>
+          <Route element={<PublicRoute isLogged={isLogin()} />}>
+            <Route path='/register' element={<Register />} />
+            <Route path='/login' element={<Login />} />
+          </Route>
+        </Routes>
+      </Router>
+    </Suspense>
   );
 }
 
