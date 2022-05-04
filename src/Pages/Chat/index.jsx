@@ -3,21 +3,48 @@ import { useEffect, useState } from 'react';
 import MainContainer from '../../components/layout/MainContainer';
 import './chat.scss'
 const Chat = () => {
-    let socket;
+    let [socket,setSocket] = useState(null);
     let [usersConnected, setUsersConnected] = useState([])
+    let [logs,setLogs] = useState([])
     let [message, setMessage] = useState('')
     const currentUser = JSON.parse(localStorage.getItem('user'));
     useEffect(() => {
-        socket = io(process.env.REACT_APP_BASE_URL, {
+        let actualSocket =io(process.env.REACT_APP_BASE_URL, {
             query: `name=${currentUser.first_name} ${currentUser.last_name}&id=${currentUser.id}&thumbnail=${currentUser.profile_picture}`
         })
-        socket.on('users', (data) => {
-            setUsersConnected(data);
-        })
+        setSocket(actualSocket);
         return () => {
-            socket.close();
+            actualSocket.close();
         }
     }, [])
+    useEffect(()=>{
+        if(socket){
+            socket.on('users', (data) => {
+                setUsersConnected(data);
+            })
+            socket.on('logs',data=>{
+                setLogs(data)
+            })
+        }
+    },[socket])
+    const submitMessage = () =>{
+        if(message.trim().length>0){
+            //Puede enviarse el mensaje
+            socket.emit('message',message);
+        }
+    }
+    const handleMessageChange = (e) =>{
+        setMessage(e.target.value)
+    }
+    const handleSendingMessage = (e) =>{
+        if(e.key==="Enter"){
+            if(e.target.value.trim().length>0){
+                socket.emit('message',message.trim());
+                e.target.value=""
+                setMessage("")
+            }
+        }
+    }
     return <MainContainer socket={socket}>
         <div className="chatHeader">
 
@@ -43,16 +70,21 @@ const Chat = () => {
                 </div>
             </div>
             <div className="col2">
-                <div style={{ padding: "0 5px 0 10px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                    <div style={{ overflowY: "auto" }}>
-                        <p>Aquí van a ir los mensajes</p>
+                <div style={{ padding: "0 5px 0 10px", display: "flex", height:"500px", flexDirection: "column", justifyContent: "space-between" }}>
+                    <div style={{ overflowY: "auto" }} id="logsDiv">
+                        {
+                            logs?logs.map(message=><div style={{display:"flex"}}>
+                                <img className="thumbnail_chat" src={message.author.profile_picture}></img>
+                                <p>{message.content}</p>
+                            </div>):null
+                        }
                     </div>
                     <div style={{ paddingBottom: "25px" }}>
                         <div style={{ float: "left", width: "90%" }}>
-                            <textarea style={{width:"95%",resize:"none"}}></textarea>
+                            <textarea style={{width:"95%",resize:"none"}} value={message} onKeyUpCapture={handleSendingMessage} onChange={handleMessageChange} ></textarea>
                         </div>
                         <div style={{ float: "left", width: "10%" }}>
-                            <button className="chatButton">ENVIAR</button>
+                            <button className="chatButton" onClick={submitMessage}>ENVIAR</button>
                         </div>
                     </div>
                 </div>

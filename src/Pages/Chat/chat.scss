@@ -21,6 +21,11 @@
     object-fit: fill;
     position: relative;
 }
+.thumbnail_chat{
+    @extend .thumbnail;
+    width:30px;
+    height:30px;
+}
 .userCard{ 
     display: flex;
     justify-content:center;
