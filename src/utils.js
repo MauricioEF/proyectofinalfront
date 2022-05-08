@@ -3,7 +3,14 @@ import Cookies from 'js-cookie';
 
 export const isLogin = () =>{
     if(process.env.REACT_APP_AUTHENTICATION_MODE==="COOKIE"){
-        return Cookies.get(process.env.REACT_APP_COOKIE_NAME)
+        let cookies = Cookies.get(process.env.REACT_APP_COOKIE_NAME)
+        console.log(cookies);
+        if(!cookies){
+            localStorage.clear();
+            return false;
+        }else{
+            return cookies;
+        }
     }
     else if(process.env.REACT_APP_AUTHENTICATION_MODE==="LOCAL_STORAGE"){
         const token = localStorage.getItem('sessionToken');
@@ -49,6 +56,7 @@ export const options = [
     {path:'/',label:'Home',showWhen:true},
     {path:'/chat',label:'Chat',showWhen:'user'},
     {path:'/profile',label:'Perfil',showWhen:'user'},
+    {path:'/cart',label:'Carrito',showWhen:'user'},
     {path:'/newproduct',label:'Nuevo Producto',showWhen:'superadmin'},
     {path:'/users',label:'Usuarios',showWhen:'superadmin'}
 ]

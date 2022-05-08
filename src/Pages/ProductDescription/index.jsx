@@ -11,12 +11,12 @@ const ProductDescription = (props) => {
     let [quantity, setQuantity] = useState(1);
     let [currentCart, setCurrentCart] = useState(null);
     let [updating, setUpdating] = useState(false);
-    let [input,setInput] = useState({
-        title:'',
-        description:'',
-        price:0,
-        stock:0,
-        code:0
+    let [input, setInput] = useState({
+        title: '',
+        description: '',
+        price: 0,
+        stock: 0,
+        code: 0
     })
     let currentUser = JSON.parse(localStorage.getItem('user'));
     const navigate = useNavigate();
@@ -25,19 +25,19 @@ const ProductDescription = (props) => {
         let pid = params.pid;
         productsService.getProductById({ pid: pid, callbackSuccess: callbackSuccessGetProductById, callbackError: callbackErrorGetProductById });
     }, [])
-    useEffect(()=>{
-        if(currentUser&&currentUser.role!=="superadmin"&&!currentCart){
+    useEffect(() => {
+        if (currentUser && currentUser.role !== "superadmin" && !currentCart) {
             console.log(currentUser);
             cartService.getCartById({ cid: currentUser.cart, callbackSuccess: callbackSuccessGetCartById, callbackError: callbackErrorGetCartById });
         }
-    },[currentUser])
-    useEffect(()=>{
-        if(product){
+    }, [currentUser])
+    useEffect(() => {
+        if (product) {
             setInput({
                 ...product
             })
         }
-    },[product])
+    }, [product])
     const addProduct = () => {
         if (quantity <= 0) {
             Swal.fire({
@@ -74,12 +74,27 @@ const ProductDescription = (props) => {
     }
     const callbackSuccessAddProductToCart = (result) => {
         console.log(result.data);
-        Swal.fire({
-            icon: "success",
-            title: "Operación exitosa",
-            text: "El producto se ha agregado a su carrito"
-        })
-        window.location.replace('/');
+        if(result.data.quantityChanged){
+            Swal.fire({
+                icon: "success",
+                title: "Hubo un cambio en el número de ejemplares",
+                text: `El stock del producto cambió durante el proceso, sólo se han podido añadir ${result.data.newQuantity} ejemplares del producto`,
+                timer:3000
+            }).then(result=>{
+                window.location.replace('/');
+            })
+        }
+        else{
+            Swal.fire({
+                icon: "success",
+                title: "¡Producto añadido con éxito!",
+                text: `Se han añadido ${result.data.newQuantity} ejemplares al carrito`,
+                timer:2000
+            }).then(result=>{
+                window.location.replace('/');
+            })
+        }
+
     }
     const callbackErrorAddProductToCart = (error) => {
         console.log(error);
@@ -107,17 +122,23 @@ const ProductDescription = (props) => {
                                 <p style={{ fontSize: "15px" }}>La entrega de este producto corre por cuenta de CoderHouse en <span style={{ color: "blue" }}>3 días hábiles</span></p>
                                 <p style={{ fontSize: "13px", textAlign: "left" }}>¿Necesitas este producto con entrega inmediata? <span className="spanPlan">Cambia tu plan a premium</span></p>
                                 <br />
-                                <p>{product ? product.status ? product.status === "available" ? <span style={{ color: "green" }}>Aún con disponibilidad</span> : <span style={{ color: "red" }}>Sin disponibilidad</span> : null : null}</p>
-                                <label>Cantidad : </label>
-                                <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)}></input>
-                                <br />
-                                <br />
+                                <p>{product ? product.status ? product.status === "available" || product.stock > 0 ? <span style={{ color: "green" }}>Aún con disponibilidad</span> : <span style={{ color: "red" }}>Sin disponibilidad</span> : null : null}</p>
+
                                 {
                                     currentCart ? currentCart.some(prod => prod.product._id === product._id) ? <>
                                         <p>El producto ya está en el carrito</p>
-                                        <button className="addToCartButton">Ver carrito</button>
+                                        <button className="addToCartButton" onClick={()=>window.location.replace('/cart')}>Ver carrito</button>
                                     </> :
-                                        <button className="addToCartButton" onClick={addProduct}>Agregar al carrito</button> : null
+                                        <>
+                                            <br />
+                                            {product && <p>Disponibles: {product.stock} piezas</p>}
+                                            <label>Cantidad : </label>
+                                            <input type="number" onKeyDown={(e) => e.preventDefault()} max={product ? product.stock : 10} value={quantity} onChange={(e) => setQuantity(e.target.value)}></input>
+                                            <br />
+                                            <br />
+                                            {product?product.stock>0?<button className="addToCartButton" onClick={addProduct}>Agregar al carrito</button>:<p>Producto fuera de stock, pronto volveremos con más piezas</p>:null}
+                                        </>
+                                        : null
                                 }
                             </div>
                         </div>
@@ -128,7 +149,7 @@ const ProductDescription = (props) => {
                                     currentCart ? currentCart.length === 0 ? <p style={{ fontSize: "11px" }}>No tienes productos en este carrito aún</p> :
                                         currentCart.slice(0, 3).map(product => <><img onClick={() => changeFromThumbnail(product.product)} src={product.product.thumbnail} className="thumbnail" /></>) : null
                                 }
-                                <button className="addToCartButton" style={{ fontSize: "10px", padding: "5px", width: "55%" }}>Ver carrito completo</button>
+                                <button className="addToCartButton" onClick={()=>window.location.replace('/cart')} style={{ fontSize: "10px", padding: "5px", width: "55%" }}>Ver carrito completo</button>
                             </div>
                         </div>
                     </>
@@ -152,7 +173,7 @@ const ProductDescription = (props) => {
                                     :
                                     <div>
                                         <p style={{ fontSize: "25px", textAlign: "center" }}>Actualizar producto</p>
-                                        <div style={{textAlign:"center"}}>
+                                        <div style={{ textAlign: "center" }}>
                                             <label>Nombre del producto: </label>
                                             <input value={input.title}></input>
                                             <label>Descripción del producto:</label>
@@ -161,7 +182,7 @@ const ProductDescription = (props) => {
                                             <input value={input.price}></input>
                                             <p>Código: {product.code}</p>
                                             <label>Stock: </label>
-                                            <input value={product.stock}/>
+                                            <input value={product.stock} />
                                         </div>
                                     </div>
                             }

@@ -10,7 +10,8 @@ const Register = React.lazy(() => import('./Pages/Register'));
 const Login = React.lazy(() => import('./Pages/Login'))
 const ProductDetails = React.lazy(() => import('./Pages/ProductDescription'));
 const NewProduct = React.lazy(()=>import('./Pages/NewProduct'));
-const Chat = React.lazy(()=>import('./Pages/Chat'))
+const Chat = React.lazy(()=>import('./Pages/Chat'));
+const Cart = React.lazy(()=>import('./Pages/Cart'));
 function App() {
   const callbackSuccessCurrent = (response) => {
     if (response.data.error) {
@@ -39,6 +40,7 @@ function App() {
             <Route path='/products/:pid' element={<ProductDetails/>} />
             <Route path='/newproduct' element={<NewProduct/>}/>
             <Route path='/chat' element={<Chat/>}/>
+            <Route path='/cart' element={<Cart/>}/>
           </Route>
           <Route element={<PublicRoute isLogged={isLogin()} />}>
             <Route path='/register' element={<Register />} />

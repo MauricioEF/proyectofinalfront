@@ -13,4 +13,8 @@ export default class CartsService{
         const data = {url:`${process.env.REACT_APP_BASE_URL}${process.env.REACT_APP_ADD_PRODUCT_TO_CART}${cid}/products/${pid}`,body,config:getAuthHeaders(),callbackSuccess,callbackError};
         this.httpClient.makePostRequest(data);
     }
+    deleteProductFromCart = ({cid,pid,callbackSuccess,callbackError}) =>{
+        const data = {url:`${process.env.REACT_APP_BASE_URL}${process.env.REACT_APP_DELETE_PRODUCT_FROM_CART}${cid}/products/${pid}`,config:getAuthHeaders(),callbackSuccess,callbackError};
+        this.httpClient.makeDeleteRequest(data);
+    }
 }
