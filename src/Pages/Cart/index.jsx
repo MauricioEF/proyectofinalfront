@@ -80,7 +80,6 @@ const Cart = props => {
                                 <p>{element.product.price}</p>
                             </div>
                             <div className="subColumn3">
-
                                 <div style={{ display: "flex" }}>
                                     <button onClick={() => handleInputChange(element.product.title, --input[element.product.title])}> {"<"} </button>
                                     <p>{input[element.product.title]}</p>
