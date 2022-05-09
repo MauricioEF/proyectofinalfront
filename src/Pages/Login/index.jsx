@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { sessionService } from '../../services';
-import {useNavigate} from 'react-router-dom'
+import {Link, useNavigate} from 'react-router-dom'
 const Login = () => {
     let navigate = useNavigate();
     let [input, setInput] = useState({
@@ -76,6 +76,7 @@ const Login = () => {
                     <button onClick={handleSubmit}>Ingresar</button>
                 </div>
             </form>
+            <p>¿Eres nuevo? <Link to="/register">Da click aquí para registrarte</Link></p>
         </div>
     </>
 }

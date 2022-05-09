@@ -21,4 +21,8 @@ export default class CartsService{
         const data = {url:`${process.env.REACT_APP_BASE_URL}${process.env.REACT_APP_UPDATE_CART}${cid}`,config:getAuthHeaders(),body,callbackSuccess,callbackError};
         this.httpClient.makePutRequest(data);
     }
+    finishPurchase = ({cid,callbackSuccess,callbackError})=>{
+        const data = {url:`${process.env.REACT_APP_BASE_URL}${process.env.REACT_APP_CONFIRM_PURCHASE}${cid}`,config:getAuthHeaders(),callbackSuccess,callbackError};
+        this.httpClient.makePostRequest(data);
+    }
 }

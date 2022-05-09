@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Swal from "sweetalert2";
 import MainContainer from "../../components/layout/MainContainer";
 import { productsService } from "../../services";
 
@@ -67,11 +68,22 @@ const NewProduct = (props) => {
     }
     /*CALLBACKS*/
     const callbackSuccessCreateProduct = (response) =>{
-        console.log(response.data)
+        Swal.fire({
+            title:"Producto agregado",
+            icon:"success",
+            text:"El producto se ha agregado con éxito",
+            timer:3000
+        }).then(result=>{
+            window.location.replace('/')
+        })
     }
     const callbackErrorCreateProduct = (error) =>{
-        console.log("error");
-        
+        Swal.fire({
+            title:"Error de agregación",
+            icon:"error",
+            text:"El producto no pudo agregarse correctamente, revisar conexión o formato",
+            timer:3000
+        })
     }
     return <>
         <MainContainer>

@@ -19,8 +19,6 @@ const ProductDescription = (props) => {
         code: 0
     })
     let currentUser = JSON.parse(localStorage.getItem('user'));
-    const navigate = useNavigate();
-    console.log(currentUser);
     useEffect(() => {
         let pid = params.pid;
         productsService.getProductById({ pid: pid, callbackSuccess: callbackSuccessGetProductById, callbackError: callbackErrorGetProductById });
@@ -32,12 +30,15 @@ const ProductDescription = (props) => {
         }
     }, [currentUser])
     useEffect(() => {
-        if (product) {
+        if (product&&!updating) {
             setInput({
                 ...product
             })
         }
     }, [product])
+    useEffect(()=>{
+        console.log(input);
+    },[input])
     const addProduct = () => {
         if (quantity <= 0) {
             Swal.fire({
@@ -56,6 +57,47 @@ const ProductDescription = (props) => {
     }
     const setUpdate = () => {
         setUpdating(true);
+    }
+    const handleInputChange = (e) =>{
+        setInput(prev=>({...prev,[e.target.name]:e.target.value}))
+    }
+    const cancelUpdate = () =>{
+        setUpdating(false);
+        setInput({...product}) 
+    }
+    const confirmChanges = () =>{
+        Swal.fire({
+            title: "¿Actualizar producto?",
+            icon:"question",
+            text: "Todos los usuarios podrán ver el producto y sus cambios",
+            showConfirmButton: true,
+            confirmButtonText: "Actualizar producto",
+            confirmButtonColor: "green",
+            showCancelButton: true,
+            cancelButtonText: "Cancelar",
+            cancelButtonColor: "red"
+        }).then(result=>{
+            if(result.isConfirmed){
+                productsService.updateProduct({pid:product._id,body:input,callbackSuccess:callbackSuccessUpdateProduct,callbackError:callbackErrorUpdateProduct});
+            }
+        })
+    }
+    const deleteProduct = () =>{
+        Swal.fire({
+            title: "¿Eliminar producto?",
+            icon:"warning",
+            text: "Esta acción es irreversible",
+            showConfirmButton: true,
+            confirmButtonText: "Aceptar",
+            confirmButtonColor: "green",
+            showCancelButton: true,
+            cancelButtonText: "Cancelar",
+            cancelButtonColor: "red"
+        }).then(result=>{
+            if(result.isConfirmed){
+                productsService.deleteProduct({pid:product._id,callbackSuccess:callbackSuccessDeleteProduct,callbackError:callbackErrorDeleteProduct});
+            }
+        })
     }
     /*CALLBACKS */
     const callbackSuccessGetProductById = (result) => {
@@ -98,6 +140,43 @@ const ProductDescription = (props) => {
     }
     const callbackErrorAddProductToCart = (error) => {
         console.log(error);
+    }
+    const callbackSuccessUpdateProduct = (response) =>{
+        productsService.getProductById({ pid: product._id, callbackSuccess: callbackSuccessGetProductById, callbackError: callbackErrorGetProductById });
+        setUpdating(false);
+        Swal.fire({
+            icon:"success",
+            title:"Producto actualizado",
+            text:"El producto se ha actualizado con éxito",
+            timer:2000
+        })
+    }
+    const callbackErrorUpdateProduct = (error) =>{
+        Swal.fire({
+            icon:"error",
+            title:"Error al actualizar producto",
+            text:"Ha habido un error al actualizar producto.",
+            timer:2000
+        })
+    }
+    const callbackSuccessDeleteProduct = response =>{
+        Swal.fire({
+            title:"Producto eliminado",
+            text:"El producto se eliminó correctamente",
+            icon:"success",
+            timer:2000
+        }).then(result=>{
+            window.location.replace('/')
+        })
+    }
+    const callbackErrorDeleteProduct = error=>{
+        console.log(error);
+        Swal.fire({
+            title:"No eliminado",
+            text:"El producto no pudo eliminarse, revisar cambios",
+            icon:"error",
+            timer:1000
+        })
     }
     return (<MainContainer>
         <div className="customRow">
@@ -168,6 +247,7 @@ const ProductDescription = (props) => {
                                         </div>
                                         <div style={{ textAlign: "center", marginTop: "40px" }}>
                                             <button className="addToCartButton" onClick={setUpdate}>Actualizar</button>
+                                            <button className="addToCartButton" onClick={deleteProduct}>Eliminar producto</button>
                                         </div>
                                     </div>
                                     :
@@ -175,14 +255,18 @@ const ProductDescription = (props) => {
                                         <p style={{ fontSize: "25px", textAlign: "center" }}>Actualizar producto</p>
                                         <div style={{ textAlign: "center" }}>
                                             <label>Nombre del producto: </label>
-                                            <input value={input.title}></input>
+                                            <input name="title" value={input.title} onChange={handleInputChange}></input>
                                             <label>Descripción del producto:</label>
-                                            <textarea value={input.description}></textarea>
+                                            <textarea name="description" value={input.description} onChange={handleInputChange}></textarea>
                                             <label>Precio</label>
-                                            <input value={input.price}></input>
+                                            <input type="number" min="0" name="price" value={input.price} onChange={handleInputChange}></input>
                                             <p>Código: {product.code}</p>
                                             <label>Stock: </label>
-                                            <input value={product.stock} />
+                                            <input type="number" min="0" name="stock" value={input.stock} onChange={handleInputChange}/>
+                                        </div>
+                                        <div>
+                                            <button onClick={confirmChanges}>Confirmar</button>
+                                            <button onClick={cancelUpdate}>Cancelar</button>
                                         </div>
                                     </div>
                             }
